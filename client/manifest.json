@@ -1,0 +1,20 @@
+{
+  "name": "Rift",
+  "short_name": "Rift",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#1e90ff",
+  "icons": [
+    {
+      "src": "/l.png",
+      "sizes": "1200x1200",
+      "type": "image/png"
+    },
+    {
+      "src": "/l.png",
+      "sizes": "1200x1200",
+      "type": "image/png"
+    }
+  ]
+}

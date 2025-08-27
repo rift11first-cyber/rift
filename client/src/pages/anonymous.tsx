@@ -6,29 +6,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Shield } from 'lucide-react';
-import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { Heart, MessageCircle, Shield, Lock, MessageSquare } from 'lucide-react';
+import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Post } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+
+const rantPhrases = [
+  "I'm so tired of people not understanding me",
+  "Why is college so overwhelming?",
+  "I hate feeling like I'm not good enough",
+  "Everyone seems to have it figured out except me",
+  "I'm exhausted from pretending everything is fine",
+  "Why do I feel so lonely even when surrounded by people?",
+  "I'm stressed about my future and don't know what to do",
+  "I feel like I'm failing at everything",
+  "Why is making friends so hard?",
+  "I'm tired of comparing myself to others",
+  "Academic pressure is crushing me",
+  "I feel like nobody really knows the real me"
+];
+
+interface AnonymousPost {
+  id: string;
+  content: string;
+  postType: 'confess' | 'rant';
+  likes: string[];
+  createdAt: Date;
+}
 
 export default function AnonymousPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<AnonymousPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPost, setNewPost] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('anonymous');
+  const [postType, setPostType] = useState<'confess' | 'rant'>('confess');
+  const [selectedPhrase, setSelectedPhrase] = useState('');
 
   useEffect(() => {
     if (!user) return;
 
-    // Query for anonymous posts only
+    // Query for anonymous posts from the separate collection
     const postsQuery = query(
-      collection(db, 'posts'),
-      where('isAnonymous', '==', true),
+      collection(db, 'anonymousPosts'),
       orderBy('createdAt', 'desc'),
       limit(20)
     );
@@ -38,7 +61,7 @@ export default function AnonymousPage() {
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date()
-      })) as Post[];
+      })) as AnonymousPost[];
       
       setPosts(postsData);
       setLoading(false);
@@ -48,23 +71,23 @@ export default function AnonymousPage() {
   }, [user]);
 
   const handleSubmit = async () => {
-    if (!newPost.trim() || !user) return;
+    const content = postType === 'confess' ? newPost.trim() : selectedPhrase;
+    if (!content || !user) return;
 
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'posts'), {
-        userId: 'anonymous',
-        content: newPost.trim(),
-        isAnonymous: true,
-        isPoll: false,
-        createdAt: serverTimestamp(),
+      // Store in the separate anonymousPosts collection
+      await addDoc(collection(db, 'anonymousPosts'), {
+        content: content,
+        postType: postType,
         likes: [],
-        comments: [],
+        createdAt: serverTimestamp(),
       });
 
       setNewPost('');
+      setSelectedPhrase('');
       toast({
-        title: "Anonymous post shared!",
+        title: `Anonymous ${postType} shared!`,
         description: "Your message has been posted safely and anonymously.",
       });
     } catch (error) {
@@ -83,7 +106,7 @@ export default function AnonymousPage() {
     if (!user) return;
 
     try {
-      const postRef = doc(db, 'posts', postId);
+      const postRef = doc(db, 'anonymousPosts', postId);
       const post = posts.find(p => p.id === postId);
       const isSupporting = post?.likes.includes(user.id);
 
@@ -99,6 +122,8 @@ export default function AnonymousPage() {
     return null;
   }
 
+  const canSubmit = postType === 'confess' ? newPost.trim() : selectedPhrase;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -110,35 +135,11 @@ export default function AnonymousPage() {
               <Shield className="h-6 w-6 text-secondary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Anonymous Corner</h1>
+              <h1 className="text-3xl font-bold">Unfiltered Corner</h1>
               <p className="text-muted-foreground">
-                A safe space to share thoughts and feelings anonymously
+                A safe space to confess or rant anonymously
               </p>
             </div>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">🔒</div>
-                <h3 className="font-semibold text-sm">Completely Anonymous</h3>
-                <p className="text-xs text-muted-foreground">Your identity is never revealed</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">💙</div>
-                <h3 className="font-semibold text-sm">Safe Space</h3>
-                <p className="text-xs text-muted-foreground">Share without judgment</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">🤝</div>
-                <h3 className="font-semibold text-sm">Community Support</h3>
-                <p className="text-xs text-muted-foreground">Get help from peers</p>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
@@ -150,28 +151,88 @@ export default function AnonymousPage() {
               <Badge variant="secondary">Safe Space</Badge>
             </CardTitle>
             <CardDescription>
-              Express your thoughts, concerns, or feelings without revealing your identity
+              Choose to confess something personal or rant about what's bothering you
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder="What's on your mind? Share your thoughts anonymously..."
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              className="min-h-[120px] resize-none"
-              maxLength={500}
-              data-testid="input-anonymous-post"
-            />
+            {/* Post Type Selection */}
+            <div className="flex space-x-2">
+              <Button
+                variant={postType === 'confess' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setPostType('confess');
+                  setSelectedPhrase('');
+                }}
+                className="flex items-center space-x-2"
+                data-testid="button-confess-type"
+              >
+                <Lock className="h-4 w-4" />
+                <span>Confess</span>
+              </Button>
+              <Button
+                variant={postType === 'rant' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setPostType('rant');
+                  setNewPost('');
+                }}
+                className="flex items-center space-x-2"
+                data-testid="button-rant-type"
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span>Rant</span>
+              </Button>
+            </div>
+
+            {/* Confession Input */}
+            {postType === 'confess' && (
+              <Textarea
+                placeholder="What would you like to confess? Share your thoughts anonymously..."
+                value={newPost}
+                onChange={(e) => setNewPost(e.target.value)}
+                className="min-h-[120px] resize-none"
+                maxLength={500}
+                data-testid="input-confession-text"
+              />
+            )}
+
+            {/* Rant Phrase Selection */}
+            {postType === 'rant' && (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Select a phrase that resonates with how you're feeling:
+                </p>
+                <div className="grid gap-2 max-h-60 overflow-y-auto">
+                  {rantPhrases.map((phrase, index) => (
+                    <Button
+                      key={index}
+                      variant={selectedPhrase === phrase ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedPhrase(phrase)}
+                      className="justify-start text-left h-auto py-3 px-4 whitespace-normal"
+                      data-testid={`button-rant-phrase-${index}`}
+                    >
+                      {phrase}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center">
               <p className="text-xs text-muted-foreground">
-                {newPost.length}/500 characters • Completely anonymous
+                {postType === 'confess' 
+                  ? `${newPost.length}/500 characters • Completely anonymous`
+                  : 'Select a phrase • Completely anonymous'
+                }
               </p>
               <Button 
                 onClick={handleSubmit}
-                disabled={!newPost.trim() || submitting}
+                disabled={!canSubmit || submitting}
                 data-testid="button-submit-anonymous"
               >
-                {submitting ? 'Sharing...' : 'Share Anonymously'}
+                {submitting ? 'Sharing...' : `Share ${postType === 'confess' ? 'Confession' : 'Rant'}`}
               </Button>
             </div>
           </CardContent>
@@ -190,7 +251,7 @@ export default function AnonymousPage() {
                 <div className="text-6xl mb-4">💭</div>
                 <h3 className="text-lg font-semibold mb-2">No anonymous posts yet</h3>
                 <p className="text-muted-foreground">
-                  Be the first to share something in this safe space
+                  Be the first to share a confession or rant in this safe space
                 </p>
               </CardContent>
             </Card>
@@ -200,12 +261,14 @@ export default function AnonymousPage() {
                 <CardContent className="p-6">
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-xl">
-                      👤
+                      {post.postType === 'confess' ? '🤫' : '😤'}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-3">
                         <span className="font-semibold">Anonymous</span>
-                        <Badge variant="secondary">Anonymous Corner</Badge>
+                        <Badge variant={post.postType === 'confess' ? 'secondary' : 'destructive'}>
+                          {post.postType === 'confess' ? 'Confession' : 'Rant'}
+                        </Badge>
                         <span className="text-muted-foreground text-sm">•</span>
                         <span className="text-muted-foreground text-sm">
                           {formatDistanceToNow(post.createdAt, { addSuffix: true })}
@@ -251,31 +314,6 @@ export default function AnonymousPage() {
             ))
           )}
         </div>
-
-        {/* Support Resources */}
-        <Card className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Heart className="h-5 w-5 text-blue-600" />
-              <span>Need Support?</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Remember, you're not alone. If you're struggling with mental health or need someone to talk to:
-            </p>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-3 bg-white rounded-lg border">
-                <h4 className="font-medium text-sm mb-1">Campus Counseling</h4>
-                <p className="text-xs text-muted-foreground">Contact your college counseling center</p>
-              </div>
-              <div className="p-3 bg-white rounded-lg border">
-                <h4 className="font-medium text-sm mb-1">Crisis Helpline</h4>
-                <p className="text-xs text-muted-foreground">24/7 support: 1-800-XXX-XXXX</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <MobileNav activeTab={activeTab} onTabChange={setActiveTab} />

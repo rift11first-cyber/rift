@@ -4,13 +4,23 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project'}.firebaseapp.com`,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project',
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project'}.firebasestorage.app`,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || 'demo-sender-id',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || 'demo-app-id'
+
+  apiKey: "AIzaSyBQRmn-kQf2EUx9BDzEc5ruJ7KcYc755-U",
+
+  authDomain: "zync-a5d3d.firebaseapp.com",
+
+  projectId: "zync-a5d3d",
+
+  storageBucket: "zync-a5d3d.firebasestorage.app",
+
+  messagingSenderId: "60497371828",
+
+  appId: "1:60497371828:web:bc06a85477335703ebede1",
+
+  measurementId: "G-M73BE43CBW"
+
 };
+
 
 const app = initializeApp(firebaseConfig);
 

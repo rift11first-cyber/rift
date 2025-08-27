@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProfileCompletionPage() {
@@ -13,27 +12,75 @@ export default function ProfileCompletionPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
+    fullName: user?.fullName || '',
     username: '',
-    college: ''
+    college: '',
+    gender: ''
   });
 
   const collegeOptions = [
+    // IITs
     { value: 'IIT Delhi', label: 'IIT Delhi' },
     { value: 'IIT Bombay', label: 'IIT Bombay' },
     { value: 'IIT Madras', label: 'IIT Madras' },
     { value: 'IIT Kanpur', label: 'IIT Kanpur' },
     { value: 'IIT Roorkee', label: 'IIT Roorkee' },
+    { value: 'IIT Kharagpur', label: 'IIT Kharagpur' },
+    { value: 'IIT Guwahati', label: 'IIT Guwahati' },
+    
+    // NITs
+    { value: 'NIT Trichy', label: 'NIT Trichy' },
+    { value: 'NIT Surathkal', label: 'NIT Surathkal' },
+    { value: 'NIT Warangal', label: 'NIT Warangal' },
+    { value: 'NIT Calicut', label: 'NIT Calicut' },
+  
+    // IIITs
+    { value: 'IIIT Hyderabad', label: 'IIIT Hyderabad' },
+    { value: 'IIIT Delhi', label: 'IIIT Delhi' },
+  
+    // Private Universities
     { value: 'VIT', label: 'VIT University' },
-    { value: 'SRM', label: 'SRM Institute' },
-    { value: 'Christ University', label: 'Christ University' },
-    { value: 'Loyola College', label: 'Loyola College' },
+    { value: 'SRM', label: 'SRM Institute of Science and Technology' },
+    { value: 'BITS Pilani', label: 'BITS Pilani' },
+    { value: 'BITS Goa', label: 'BITS Goa' },
+    { value: 'BITS Hyderabad', label: 'BITS Hyderabad' },
+  
+    // Amrita Campuses
+    { value: 'Amrita Coimbatore', label: 'Amrita Vishwa Vidyapeetham - Coimbatore' },
+    { value: 'Amrita Bengaluru', label: 'Amrita Vishwa Vidyapeetham - Bengaluru' },
+    { value: 'Amrita Chennai', label: 'Amrita Vishwa Vidyapeetham - Chennai' },
+    { value: 'Amrita Amritapuri', label: 'Amrita Vishwa Vidyapeetham - Amritapuri' },
+  
+    // Popular Colleges
     { value: 'Anna University', label: 'Anna University' },
+    { value: 'Christ University', label: 'Christ University' },
+    { value: 'Loyola College', label: 'Loyola College, Chennai' },
+    { value: 'St Josephs', label: 'St. Joseph’s College, Bengaluru' },
+    { value: 'Mount Carmel', label: 'Mount Carmel College, Bengaluru' },
+    { value: 'Delhi University', label: 'University of Delhi' },
+    { value: 'Jamia Millia Islamia', label: 'Jamia Millia Islamia' },
+    { value: 'Jawaharlal Nehru University', label: 'JNU Delhi' },
+    { value: 'Ashoka University', label: 'Ashoka University' },
+    { value: 'Shiv Nadar University', label: 'Shiv Nadar University' },
+    { value: 'OP Jindal', label: 'O.P. Jindal Global University' },
+    { value: 'Presidency University', label: 'Presidency University, Kolkata' },
+    { value: 'Jadavpur University', label: 'Jadavpur University, Kolkata' },
+    { value: 'Manipal University', label: 'Manipal Academy of Higher Education' },
+    { value: 'Symbiosis Pune', label: 'Symbiosis International University, Pune' },
+    { value: 'FLAME University', label: 'FLAME University, Pune' },
+  ];
+  
+  const genderOptions = [
+    { value: 'male', label: 'Male' },
+    { value: 'female', label: 'Female' },
+    { value: 'other', label: 'Other' },
+    { value: 'prefer-not-to-say', label: 'Prefer not to say' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!profileData.username.trim() || !profileData.college) {
+    if (!profileData.fullName.trim() || !profileData.username.trim() || !profileData.college || !profileData.gender) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -46,8 +93,10 @@ export default function ProfileCompletionPage() {
     
     try {
       await updateUser({
+        fullName: profileData.fullName.trim(),
         username: profileData.username.trim(),
         college: profileData.college,
+        gender: profileData.gender,
         profileComplete: false, // Will be completed after quiz
       });
       
@@ -64,6 +113,10 @@ export default function ProfileCompletionPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
   if (!user) return null;
@@ -87,13 +140,26 @@ export default function ProfileCompletionPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter your full name"
+                value={profileData.fullName}
+                onChange={(e) => handleInputChange('fullName', e.target.value)}
+                required
+                data-testid="input-fullname"
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="text"
                 placeholder="Choose a unique username"
                 value={profileData.username}
-                onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+                onChange={(e) => handleInputChange('username', e.target.value)}
                 required
                 data-testid="input-username"
               />
@@ -103,10 +169,30 @@ export default function ProfileCompletionPage() {
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select 
+                value={profileData.gender} 
+                onValueChange={(value) => handleInputChange('gender', value)}
+                required
+              >
+                <SelectTrigger data-testid="select-gender">
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {genderOptions.map((gender) => (
+                    <SelectItem key={gender.value} value={gender.value}>
+                      {gender.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="college">College</Label>
               <Select 
                 value={profileData.college} 
-                onValueChange={(value) => setProfileData(prev => ({ ...prev, college: value }))}
+                onValueChange={(value) => handleInputChange('college', value)}
                 required
               >
                 <SelectTrigger data-testid="select-college">

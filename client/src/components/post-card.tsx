@@ -40,7 +40,29 @@ export function PostCard({ post }: PostCardProps) {
     }
   };
 
-  const timeAgo = formatDistanceToNow(post.createdAt, { addSuffix: true });
+  // Safe timestamp conversion with fallback
+  const getTimeAgo = () => {
+    try {
+      if (!post.createdAt) {
+        return 'Just now';
+      }
+      
+      // Handle Firebase Timestamp objects
+      const date = post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt);
+      
+      // Validate the date
+      if (isNaN(date.getTime())) {
+        return 'Just now';
+      }
+      
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
+      return 'Just now';
+    }
+  };
+
+  const timeAgo = getTimeAgo();
 
   return (
     <Card className="feed-card" data-testid={`card-post-${post.id}`}>

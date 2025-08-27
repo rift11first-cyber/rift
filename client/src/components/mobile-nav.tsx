@@ -3,34 +3,31 @@ import { cn } from '@/lib/utils';
 
 interface MobileNavProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
 }
 
-export function MobileNav({ activeTab, onTabChange }: MobileNavProps) {
+export function MobileNav({ activeTab }: MobileNavProps) {
   const tabs = [
-    { id: 'feed', label: 'Feed', icon: Home },
-    { id: 'discover', label: 'Discover', icon: Search },
-    { id: 'create', label: 'Create', icon: Plus },
-    { id: 'anonymous', label: 'Anonymous', icon: VenetianMask },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'home', label: 'Home', icon: Home, href: '/' },
+    { id: 'anonymous', label: 'Unfiltered', icon: VenetianMask, href: '/anonymous' },
+    { id: 'profile', label: 'Blend', icon: User, href: '/find-vibe' },
   ];
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
       <div className="flex justify-around items-center py-2">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
+        {tabs.map(({ id, label, icon: Icon, href }) => (
+          <a
             key={id}
-            onClick={() => onTabChange(id)}
+            href={href}
             className={cn(
-              'flex flex-col items-center p-2 transition-colors',
+              'flex flex-col items-center p-2 transition-colors no-underline',
               activeTab === id ? 'text-primary' : 'text-muted-foreground'
             )}
             data-testid={`button-nav-${id}`}
           >
             <Icon className="h-5 w-5" />
             <span className="text-xs mt-1">{label}</span>
-          </button>
+          </a>
         ))}
       </div>
     </nav>
