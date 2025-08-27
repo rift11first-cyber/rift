@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User as FirebaseUser, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendEmailVerification, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { User as FirebaseUser, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { User, InsertUser, COLLEGE_DOMAINS } from '@shared/schema';
@@ -9,6 +9,7 @@ export function useAuth() {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const provider = new GoogleAuthProvider();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -36,38 +37,32 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, userData: Omit<InsertUser, 'email'>) => {
-    try {
-      setError(null);
-
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(userCredential.user);
-      
-      const newUser: InsertUser = {
-        ...userData,
-        email,
-        profileComplete: false,
-      };
-
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        ...newUser,
-        createdAt: new Date(),
-      });
-
-      return userCredential.user;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
+  const signInWithGoogle = async () => {
     try {
       setError(null);
       // Set session to persist for extended period before signing in
       await setPersistence(auth, browserLocalPersistence);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
+      const result = await signInWithPopup(auth, provider);
+      
+      // Check if user exists in our database
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      
+      if (!userDoc.exists()) {
+        // First time user - create basic profile
+        const newUser = {
+          email: result.user.email || '',
+          fullName: result.user.displayName || '',
+          username: '', // Will be set in profile completion
+          college: '', // Will be set in profile completion
+          profileComplete: false,
+          connections: [],
+          createdAt: new Date(),
+        };
+
+        await setDoc(doc(db, 'users', result.user.uid), newUser);
+      }
+      
+      return result.user;
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -106,8 +101,7 @@ export function useAuth() {
     firebaseUser,
     loading,
     error,
-    signUp,
-    signIn,
+    signInWithGoogle,
     logout,
     updateUser,
   };

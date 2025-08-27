@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import AuthPage from "@/pages/auth";
+import ProfileCompletionPage from "@/pages/profile-completion";
 import QuizPage from "@/pages/quiz";
 import HomePage from "@/pages/home";
 import FindVibePage from "@/pages/find-vibe";
@@ -29,6 +30,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!firebaseUser) {
     return <AuthPage />;
+  }
+
+  if (!user?.username || !user?.college) {
+    return <ProfileCompletionPage />;
   }
 
   if (!user?.profileComplete) {
