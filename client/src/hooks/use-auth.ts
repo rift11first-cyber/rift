@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User as FirebaseUser, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendEmailVerification } from 'firebase/auth';
+import { User as FirebaseUser, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendEmailVerification, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { User, InsertUser, COLLEGE_DOMAINS } from '@shared/schema';
@@ -64,6 +64,8 @@ export function useAuth() {
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
+      // Set session to persist for extended period before signing in
+      await setPersistence(auth, browserLocalPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return userCredential.user;
     } catch (err: any) {
