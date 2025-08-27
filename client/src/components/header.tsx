@@ -63,9 +63,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                   <CharacterAvatar character={user.character} size="md" />
                 )}
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium" data-testid="text-username">{user.username}</p>
+                  <p className="text-sm font-medium" data-testid="text-fullname">{user.fullName}</p>
                   <p className="text-xs text-muted-foreground" data-testid="text-user-info">
-                    {user.character ? CHARACTERS[user.character].name : 'New User'} • {user.college}
+                    @{user.username} • {user.character ? CHARACTERS[user.character].name : 'New User'} • {user.college}
                   </p>
                 </div>
                 <Button

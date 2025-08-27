@@ -75,7 +75,7 @@ export default function FindVibePage() {
         .map(u => ({
           user: {
             id: u.id,
-            name: u.username,
+            name: u.fullName || u.username,
             character: u.character!,
             matchPercentage: calculateMatchPercentage(u)
           },
@@ -87,7 +87,7 @@ export default function FindVibePage() {
         .map(u => ({
           user: {
             id: u.id,
-            name: u.username,
+            name: u.fullName || u.username,
             character: u.character!,
             matchPercentage: calculateMatchPercentage(u)
           },

@@ -69,7 +69,7 @@ export function PostCard({ post }: PostCardProps) {
               ) : (
                 <>
                   <span className="font-semibold" data-testid={`text-author-${post.id}`}>
-                    {post.userData?.username || 'Unknown User'}
+                    {(post.userData as any)?.fullName || post.userData?.username || 'Unknown User'}
                   </span>
                   {post.userData?.character && (
                     <>

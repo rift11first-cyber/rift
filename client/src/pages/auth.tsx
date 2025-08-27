@@ -26,6 +26,7 @@ export default function AuthPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    fullName: '',
     username: '',
     college: ''
   });
@@ -72,6 +73,7 @@ export default function AuthPage() {
     
     try {
       await signUp(signUpData.email, signUpData.password, {
+        fullName: signUpData.fullName,
         username: signUpData.username,
         college: signUpData.college,
         profileComplete: false,
@@ -88,6 +90,7 @@ export default function AuthPage() {
         email: '',
         password: '',
         confirmPassword: '',
+        fullName: '',
         username: '',
         college: ''
       });
@@ -190,6 +193,19 @@ export default function AuthPage() {
                     onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
                     required
                     data-testid="input-signup-email"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={signUpData.fullName}
+                    onChange={(e) => setSignUpData(prev => ({ ...prev, fullName: e.target.value }))}
+                    required
+                    data-testid="input-fullname"
                   />
                 </div>
                 

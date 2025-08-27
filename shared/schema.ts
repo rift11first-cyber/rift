@@ -20,6 +20,7 @@ export const Gender = z.enum(['male', 'female']);
 export const userSchema = z.object({
   id: z.string(),
   email: z.string().email(),
+  fullName: z.string().min(2).max(50),
   username: z.string().min(2).max(30),
   college: z.string(),
   character: CharacterType.optional(),
