@@ -36,18 +36,9 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  const validateCollegeEmail = (email: string): boolean => {
-    const domain = email.split('@')[1];
-    return COLLEGE_DOMAINS.includes(domain);
-  };
-
   const signUp = async (email: string, password: string, userData: Omit<InsertUser, 'email'>) => {
     try {
       setError(null);
-      
-      if (!validateCollegeEmail(email)) {
-        throw new Error('Please use a valid college email address');
-      }
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);

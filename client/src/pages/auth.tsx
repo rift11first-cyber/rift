@@ -98,10 +98,18 @@ export default function AuthPage() {
     }
   };
 
-  const collegeOptions = COLLEGE_DOMAINS.map(domain => {
-    const collegeName = domain.split('.')[0].toUpperCase();
-    return { value: collegeName, label: collegeName };
-  });
+  const collegeOptions = [
+    { value: 'IIT Delhi', label: 'IIT Delhi' },
+    { value: 'IIT Bombay', label: 'IIT Bombay' },
+    { value: 'IIT Madras', label: 'IIT Madras' },
+    { value: 'IIT Kanpur', label: 'IIT Kanpur' },
+    { value: 'IIT Roorkee', label: 'IIT Roorkee' },
+    { value: 'VIT', label: 'VIT University' },
+    { value: 'SRM', label: 'SRM Institute' },
+    { value: 'Christ University', label: 'Christ University' },
+    { value: 'Loyola College', label: 'Loyola College' },
+    { value: 'Anna University', label: 'Anna University' },
+  ];
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -129,11 +137,11 @@ export default function AuthPage() {
             <TabsContent value="signin" className="space-y-4">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">College Email</Label>
+                  <Label htmlFor="signin-email">Email Address</Label>
                   <Input
                     id="signin-email"
                     type="email"
-                    placeholder="your.name@college.edu"
+                    placeholder="your.email@example.com"
                     value={signInData.email}
                     onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
                     required
@@ -173,19 +181,16 @@ export default function AuthPage() {
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">College Email</Label>
+                  <Label htmlFor="signup-email">Email Address</Label>
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="your.name@college.edu"
+                    placeholder="your.email@example.com"
                     value={signUpData.email}
                     onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
                     required
                     data-testid="input-signup-email"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Use your official college email address
-                  </p>
                 </div>
                 
                 <div className="space-y-2">
